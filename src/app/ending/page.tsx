@@ -1,24 +1,28 @@
 'use client';
 
 import { useGame } from '@/store/GameState';
-import { ShieldAlert, RotateCcw } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Mail, RotateCcw, ShieldCheck } from 'lucide-react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Ending() {
   const { stage, resetGame } = useGame();
   const router = useRouter();
-  const [showAnimation, setShowAnimation] = useState(true);
+  const [showSummary, setShowSummary] = useState(false);
+  const [playerName, setPlayerName] = useState('');
+  const [playerEmail, setPlayerEmail] = useState('');
+  const [isCertificateSent, setIsCertificateSent] = useState(false);
 
   useEffect(() => {
     if (stage !== 3) {
       router.replace(stage === 1 ? '/' : '/stage2');
+      return;
     }
-    
-    // Play handcuffs animation for 2.5 seconds
+
     const timer = setTimeout(() => {
-      setShowAnimation(false);
-    }, 2500);
+      setShowSummary(true);
+    }, 2200);
+
     return () => clearTimeout(timer);
   }, [stage, router]);
 
@@ -29,47 +33,98 @@ export default function Ending() {
     router.push('/');
   };
 
+  const handleCertificateSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    window.dispatchEvent(
+      new CustomEvent('certificate-request', {
+        detail: {
+          name: playerName.trim(),
+          mail: playerEmail.trim(),
+        },
+      })
+    );
+    setIsCertificateSent(true);
+  };
+
   return (
-    <main className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden font-sans">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#1e1b4b_0%,_#000000_100%)]"></div>
-      
-      {showAnimation ? (
-        <div className="flex flex-col items-center justify-center z-10 animate-in spin-in-12 zoom-in-50 duration-1000">
-          <ShieldAlert size={140} className="text-white drop-shadow-[0_0_80px_rgba(255,255,255,0.9)]" />
-          <h1 className="mt-8 text-6xl font-black text-white tracking-[0.3em] drop-shadow-[0_0_30px_rgba(255,255,255,0.6)] animate-pulse">
-            ARRESTED
+    <main className="relative flex h-full w-full items-center justify-center overflow-hidden bg-black font-sans">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.25),_transparent_28%),radial-gradient(circle_at_bottom,_rgba(34,197,94,0.22),_transparent_30%),linear-gradient(180deg,#04070c_0%,#02040a_100%)]" />
+      <div className="absolute inset-0 opacity-25 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.04)_50%,transparent_100%)]" />
+
+      {!showSummary ? (
+        <div className="z-10 flex flex-col items-center justify-center animate-in zoom-in-75 fade-in duration-700">
+          <div className="flex h-36 w-36 items-center justify-center rounded-full border border-cyan-300/40 bg-cyan-400/10 shadow-[0_0_80px_rgba(56,189,248,0.22)]">
+            <ShieldCheck size={76} className="text-cyan-200" />
+          </div>
+          <h1 className="mt-8 text-center text-6xl font-black tracking-[0.26em] text-white">
+            CASE CLOSED
           </h1>
+          <p className="mt-4 text-lg text-cyan-100/80">철문 해제 및 탐정 구출 완료</p>
         </div>
       ) : (
-        <div className="z-10 bg-[#0f0e17]/80 backdrop-blur-lg border-2 border-[#7fc4fd] rounded-3xl p-12 max-w-2xl w-full flex flex-col items-center text-center shadow-[0_0_80px_rgba(127,196,253,0.3)] animate-in fade-in slide-in-from-bottom-10 duration-700">
-          <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6 border border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.4)]">
-            <span className="text-4xl text-green-400 font-bold">✓</span>
+        <div className="z-10 w-full max-w-3xl rounded-[32px] border border-cyan-300/20 bg-[#0b1119]/85 p-10 text-center shadow-[0_0_100px_rgba(56,189,248,0.14)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-green-400/40 bg-green-400/10 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+            <span className="text-4xl font-black text-green-300">✓</span>
           </div>
-          
-          <h1 className="text-5xl font-black text-white mb-4 tracking-widest drop-shadow-md">
-            사건 해결!
-          </h1>
-          <h2 className="text-2xl font-bold text-[#7fc4fd] mb-8">
-            "범인은 당신이야!"
-          </h2>
-          
-          <div className="bg-black/50 rounded-xl p-8 mb-10 border border-white/10 w-full text-left shadow-inner">
-            <p className="text-slate-300 leading-relaxed mb-6 text-lg">
-              위기에 빠진 K 탐정님을 무사히 구출했습니다.<br/>
-              사무실에 남겨진 단서를 모아 범인의 아지트를 찾아냈고,<br/>
-              완벽한 추리로 굳게 잠긴 철문을 열어냈습니다.
-            </p>
-            <p className="text-white font-bold text-xl drop-shadow">
-              당신의 뛰어난 관찰력과 추리력 덕분입니다!
-            </p>
+
+          <h1 className="mt-6 text-5xl font-black tracking-[0.12em] text-white">사건 해결</h1>
+          <p className="mt-4 text-lg leading-relaxed text-slate-300">
+            사라진 탐정의 사무실에서 단서를 모아 범인의 지하 창고까지 추적해냈습니다.
+            <br />
+            시공간 궤적과 소거법으로 범인의 아지트를 돌파했다! 탐정을 무사히 구출했다!
+          </p>
+
+          <div className="mt-8 rounded-[28px] border border-white/10 bg-black/35 p-6 text-left">
+            <div className="text-sm font-black tracking-[0.24em] text-cyan-300">CLEAR REWARD</div>
+            <div className="mt-5 flex items-start gap-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
+              <div className="mt-1 flex h-11 w-11 items-center justify-center rounded-full bg-cyan-300/15">
+                <Mail size={22} className="text-cyan-200" />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-white">방탈출 Certificate 신청</div>
+                <p className="mt-1 text-sm leading-relaxed text-slate-300">
+                  방탈출 Certificate 발송을 원하시면 이메일을 입력해주세요.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCertificateSubmit} className="mt-5 flex flex-col gap-4">
+              <input
+                type="text"
+                value={playerName}
+                onChange={(event) => setPlayerName(event.target.value)}
+                placeholder="이름"
+                className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-base text-white outline-none transition-colors placeholder:text-slate-500 focus:border-cyan-300/60"
+                required
+              />
+              <input
+                type="email"
+                value={playerEmail}
+                onChange={(event) => setPlayerEmail(event.target.value)}
+                placeholder="이메일"
+                className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-base text-white outline-none transition-colors placeholder:text-slate-500 focus:border-cyan-300/60"
+                required
+              />
+              <button
+                type="submit"
+                className="w-full rounded-2xl bg-cyan-300 px-6 py-4 text-base font-black text-slate-950 transition-all hover:scale-[1.01] hover:bg-cyan-200"
+              >
+                Submit
+              </button>
+            </form>
+
+            {isCertificateSent && (
+              <div className="mt-4 rounded-2xl border border-green-400/30 bg-green-400/10 px-4 py-3 text-sm font-semibold text-green-200">
+                탈출 증명서를 전송해드렸습니다.
+              </div>
+            )}
           </div>
-          
-          <button 
+
+          <button
             onClick={handleRestart}
-            className="flex items-center gap-3 bg-[#7fc4fd] hover:bg-[#a1d5ff] text-black font-black px-10 py-5 rounded-2xl transition-all shadow-[0_0_30px_rgba(127,196,253,0.4)] hover:shadow-[0_0_50px_rgba(161,213,255,0.7)] hover:scale-105 active:scale-95 text-xl tracking-widest"
+            className="mt-8 inline-flex items-center gap-3 rounded-2xl bg-cyan-300 px-8 py-4 text-lg font-black text-slate-950 transition-all hover:scale-[1.02] hover:bg-cyan-200"
           >
-            <RotateCcw size={28} />
+            <RotateCcw size={22} />
             다시 플레이하기
           </button>
         </div>
