@@ -69,9 +69,9 @@ export default function Ending() {
 
           <h1 className="mt-6 text-5xl font-black tracking-[0.12em] text-white">사건 해결</h1>
           <p className="mt-4 text-lg leading-relaxed text-slate-300">
-            사라진 탐정의 사무실에서 단서를 모아 범인의 지하 창고까지 추적해냈습니다.
+            사라진 탐정의 사무실에서 단서를 모아 범인의 지하 창고까지 추적해내다니..
             <br />
-            시공간 궤적과 소거법으로 범인의 아지트를 돌파했다! 탐정을 무사히 구출했다!
+            범인의 아지트를 돌파하고 탐정을 무사히 구출했다!
           </p>
 
           <div className="mt-8 rounded-[28px] border border-white/10 bg-black/35 p-6 text-left">
