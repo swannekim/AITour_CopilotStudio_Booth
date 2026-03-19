@@ -75,7 +75,7 @@ export function ChatPanel() {
     if (!webChatStore) {
       webChatStore = webChatApi.createStore(
         {},
-        () => (next) => (action) => next(action)
+        () => (next: (action: WebChatAction) => WebChatAction) => (action: WebChatAction) => next(action)
       );
     }
 
