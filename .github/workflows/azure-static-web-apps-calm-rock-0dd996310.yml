@@ -32,9 +32,15 @@ jobs:
                const coredemo = require('@actions/core')
                return await coredemo.getIDToken()
            result-encoding: string
+      - name: Debug env (length only)
+        run: node -e "console.log('NEXT_PUBLIC_DIRECT_LINE_SECRET length:', (process.env.NEXT_PUBLIC_DIRECT_LINE_SECRET || '').length)"
+        env:
+          NEXT_PUBLIC_DIRECT_LINE_SECRET: ${{ secrets.NEXT_PUBLIC_DIRECT_LINE_SECRET }}
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
+        env:
+          NEXT_PUBLIC_DIRECT_LINE_SECRET: ${{ secrets.NEXT_PUBLIC_DIRECT_LINE_SECRET }}
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_CALM_ROCK_0DD996310 }}
           action: "upload"

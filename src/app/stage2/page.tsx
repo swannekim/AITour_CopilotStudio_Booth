@@ -647,7 +647,7 @@ export default function Stage2() {
 
             <div className="mb-5">
               <div className="text-xs text-cyan-300 font-black tracking-[0.28em]">K.S SUSPECT PROFILE</div>
-              <h2 className="text-2xl font-black text-white mt-2">용의자 소거법 프로필</h2>
+              <h2 className="text-2xl font-black text-white mt-2">용의자 프로필</h2>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-zinc-700">
