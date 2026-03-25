@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
+import { AppShell } from "@/components/AppShell";
 import "./globals.css";
-import { ChatPanel } from "@/components/ChatPanel";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,14 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased custom-cursor overflow-hidden bg-[#111]`}
       >
         <Providers>
-          <div className="flex w-screen h-screen overflow-hidden">
-            {/* Left Game Area */}
-            <div className="flex-1 relative border-r border-slate-700/50">
-              {children}
-            </div>
-            {/* Right Chat Panel */}
-            <ChatPanel />
-          </div>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

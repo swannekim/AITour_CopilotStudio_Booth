@@ -124,8 +124,8 @@ export default function CertificatePage() {
 
   if (!name) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#07111c] px-6 text-white">
-        <div className="w-full max-w-xl rounded-[28px] border border-white/10 bg-[#0b1119] p-8 text-center">
+      <main className="flex min-h-screen items-center justify-center bg-[#07111c] px-4 py-8 text-white sm:px-6">
+        <div className="w-full max-w-xl rounded-[28px] border border-white/10 bg-[#0b1119] p-6 text-center sm:p-8">
           <h1 className="text-3xl font-black">수료증 정보를 찾을 수 없습니다.</h1>
           <p className="mt-4 text-slate-300">
             엔딩 화면에서 이름을 입력해 수료증 링크를 다시 생성해주세요.
@@ -142,8 +142,8 @@ export default function CertificatePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_30%),linear-gradient(180deg,#07111c_0%,#04070c_100%)] px-4 py-10 text-white">
-      <div className="mx-auto w-full max-w-4xl rounded-[32px] border border-cyan-300/20 bg-[#0b1119]/95 p-8 shadow-[0_0_80px_rgba(56,189,248,0.12)]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_30%),linear-gradient(180deg,#07111c_0%,#04070c_100%)] px-4 py-6 text-white sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-4xl rounded-[32px] border border-cyan-300/20 bg-[#0b1119]/95 p-5 shadow-[0_0_80px_rgba(56,189,248,0.12)] sm:p-8">
         <div className="text-sm font-black tracking-[0.24em] text-cyan-300">AI TOUR ESCAPE CERTIFICATE</div>
         <h1 className="mt-5 text-4xl font-black leading-tight md:text-5xl">🎉 {name}님 축하드립니다!</h1>
         <p className="mt-5 text-lg leading-relaxed text-slate-200">
@@ -168,14 +168,14 @@ export default function CertificatePage() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <button
             onClick={handlePrint}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-300 px-5 py-3 font-bold text-slate-950 transition-colors hover:bg-cyan-200"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-300 px-5 py-3 font-bold text-slate-950 transition-colors hover:bg-cyan-200 sm:w-auto"
           >
             <Printer size={18} />
             인쇄 / PDF 저장
           </button>
           <button
             onClick={handleDownloadHtml}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-3 font-bold text-white transition-colors hover:bg-white/10"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-3 font-bold text-white transition-colors hover:bg-white/10 sm:w-auto"
           >
             <Download size={18} />
             HTML 다운로드

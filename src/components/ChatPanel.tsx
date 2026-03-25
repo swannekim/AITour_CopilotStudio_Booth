@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import Script from 'next/script';
 import { useGame } from '@/store/GameState';
 
@@ -37,6 +37,31 @@ type WebChatApi = {
 
 let webChatStore: WebChatStoreLike | null = null;
 
+const CHAT_PANEL_STORAGE_KEY = 'chat-panel-width';
+const DEFAULT_CHAT_PANEL_WIDTH = 440;
+const MIN_CHAT_PANEL_WIDTH = 240;
+const DESKTOP_MIN_CHAT_PANEL_WIDTH = 320;
+const MAX_CHAT_PANEL_WIDTH = 560;
+const MIN_MAIN_AREA_WIDTH = 420;
+
+const getChatPanelBounds = (viewportWidth: number) => {
+  const maxWidth = Math.min(
+    MAX_CHAT_PANEL_WIDTH,
+    Math.max(MIN_CHAT_PANEL_WIDTH, viewportWidth - MIN_MAIN_AREA_WIDTH)
+  );
+  const minWidth = Math.min(maxWidth, viewportWidth < 900 ? MIN_CHAT_PANEL_WIDTH : DESKTOP_MIN_CHAT_PANEL_WIDTH);
+
+  return { minWidth, maxWidth };
+};
+
+const clampChatPanelWidth = (width: number, viewportWidth: number) => {
+  const { minWidth, maxWidth } = getChatPanelBounds(viewportWidth);
+  return Math.min(maxWidth, Math.max(minWidth, Math.round(width)));
+};
+
+const getDefaultChatPanelWidth = (viewportWidth: number) =>
+  clampChatPanelWidth(Math.round(viewportWidth * 0.34), viewportWidth);
+
 export function ChatPanel() {
   const { stage, collectedHints } = useGame();
   const [isWebChatLoaded, setIsWebChatLoaded] = useState(false);
@@ -44,12 +69,24 @@ export function ChatPanel() {
   const [botStatus, setBotStatus] = useState('대기 중...');
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const pendingCertificateRequestRef = useRef<CertificateRequest | null>(null);
+  const [panelWidth, setPanelWidth] = useState(DEFAULT_CHAT_PANEL_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
+  const activePointerIdRef = useRef<number | null>(null);
+  const dragStartXRef = useRef(0);
+  const dragStartWidthRef = useRef(DEFAULT_CHAT_PANEL_WIDTH);
 
   const directLineSecret = process.env.NEXT_PUBLIC_DIRECT_LINE_SECRET || '';
   console.log('DL secret length:', directLineSecret.length);
   // const directLineSecret = '8ooQOPojaBtfFbNODZRauzRLHZfgm3i5KBI3s0TpB3pNbP4aXGQQJQQJ99CCACqBBLyAArohAAABAZBS11NX'
   const webChatApi =
     typeof window === 'undefined' ? undefined : (window as Window & { WebChat?: WebChatApi }).WebChat;
+
+  const stopResizing = useCallback(() => {
+    activePointerIdRef.current = null;
+    setIsResizing(false);
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  }, []);
 
   const sendBotEvent = useCallback((name: string, value: unknown) => {
     if (!webChatStore) return;
@@ -182,8 +219,93 @@ export function ChatPanel() {
     };
   }, [flushPendingCertificateRequest, isChatStarted]);
 
+  useEffect(() => {
+    const savedWidth = window.localStorage.getItem(CHAT_PANEL_STORAGE_KEY);
+    const parsedWidth = savedWidth ? Number(savedWidth) : Number.NaN;
+    const initialWidth = Number.isFinite(parsedWidth)
+      ? clampChatPanelWidth(parsedWidth, window.innerWidth)
+      : getDefaultChatPanelWidth(window.innerWidth);
+    const frameId = window.requestAnimationFrame(() => {
+      setPanelWidth(initialWidth);
+    });
+
+    const handleResize = () => {
+      setPanelWidth((currentWidth) => clampChatPanelWidth(currentWidth, window.innerWidth));
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(CHAT_PANEL_STORAGE_KEY, String(panelWidth));
+  }, [panelWidth]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (activePointerIdRef.current !== null && event.pointerId !== activePointerIdRef.current) return;
+
+      const deltaX = dragStartXRef.current - event.clientX;
+      const nextWidth = clampChatPanelWidth(dragStartWidthRef.current + deltaX, window.innerWidth);
+      setPanelWidth(nextWidth);
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      if (activePointerIdRef.current !== null && event.pointerId !== activePointerIdRef.current) return;
+      stopResizing();
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+    };
+  }, [isResizing, stopResizing]);
+
+  useEffect(() => () => stopResizing(), [stopResizing]);
+
+  const handleResizeStart = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+
+    activePointerIdRef.current = event.pointerId;
+    dragStartXRef.current = event.clientX;
+    dragStartWidthRef.current = panelWidth;
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    setIsResizing(true);
+  };
+
   return (
-    <div className="z-50 flex h-full w-[40vw] min-w-[320px] max-w-[500px] flex-col border-l border-slate-700/50 bg-[#f5f5f5] shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
+    <div
+      className="relative z-50 flex h-full shrink-0 flex-col border-l border-slate-700/50 bg-[#f5f5f5] shadow-[-10px_0_30px_rgba(0,0,0,0.5)]"
+      style={{ width: `${panelWidth}px` }}
+    >
+      <button
+        type="button"
+        aria-label="Resize chat panel"
+        title="Drag to resize"
+        onPointerDown={handleResizeStart}
+        className="absolute inset-y-0 left-0 z-30 w-4 -translate-x-1/2 cursor-col-resize touch-none border-0 bg-transparent"
+      >
+        <span
+          className={`absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 rounded-full transition-colors ${
+            isResizing ? 'bg-[#50e6ff]' : 'bg-white/15 hover:bg-white/40'
+          }`}
+        />
+      </button>
+
       <Script
         src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"
         onLoad={() => setIsWebChatLoaded(true)}

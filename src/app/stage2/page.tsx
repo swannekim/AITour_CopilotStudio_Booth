@@ -363,7 +363,7 @@ export default function Stage2() {
     if (answer === '구승민') {
       showDialog({
         speaker: '시스템',
-        text: '잠금 장치 해제. 탐정 구출 성공. Forms 양식 연동을 완료하고 Certificate 이메일 발송을 시작합니다.',
+        text: '잠금 장치 해제. 탐정 구출 성공 Certificate 발급을 시작합니다.',
       });
       setShowDoorModal(false);
       setTimeout(() => {

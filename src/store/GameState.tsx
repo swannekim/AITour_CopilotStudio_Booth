@@ -23,25 +23,37 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [stage, setStage] = useState(1);
-  const [collectedHints, setCollectedHints] = useState<number[]>([]);
+  const [stage, setStage] = useState(() => {
+    if (typeof window === 'undefined') return 1;
+
+    const savedStage = window.localStorage.getItem('detective_stage');
+    return savedStage ? Number(savedStage) : 1;
+  });
+  const [collectedHints, setCollectedHints] = useState<number[]>(() => {
+    if (typeof window === 'undefined') return [];
+
+    const savedHints = window.localStorage.getItem('detective_hints');
+    if (!savedHints) return [];
+
+    try {
+      return JSON.parse(savedHints);
+    } catch {
+      return [];
+    }
+  });
   const [timeLeft, setTimeLeft] = useState(300); // 5 mins
   const [dialog, setDialog] = useState<DialogMsg | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from local storage on mount
+  // Delay rendering until after hydration so server and client markup stay aligned.
   useEffect(() => {
-    const savedStage = localStorage.getItem('detective_stage');
-    const savedHints = localStorage.getItem('detective_hints');
-    if (savedStage) setStage(Number(savedStage));
-    if (savedHints) {
-      try {
-        setCollectedHints(JSON.parse(savedHints));
-      } catch {
-        setCollectedHints([]);
-      }
-    }
-    setIsLoaded(true);
+    const frameId = window.requestAnimationFrame(() => {
+      setIsLoaded(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
   }, []);
 
   // Save to local storage on change
